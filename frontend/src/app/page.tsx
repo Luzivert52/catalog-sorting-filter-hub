@@ -23,12 +23,12 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [sortOption, setSortOption] =
     useState<SortOption>("default");
-
   const [lowStockOnly, setLowStockOnly] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Mengambil data produk dari backend
   useEffect(() => {
     async function fetchProducts() {
       try {
@@ -57,7 +57,9 @@ export default function Home() {
         setProducts(data);
       } catch (error) {
         console.error(error);
-        setError("Gagal mengambil data produk. Pastikan backend Go berjalan.");
+        setError(
+          "Gagal mengambil data produk. Pastikan backend Go berjalan."
+        );
       } finally {
         setLoading(false);
       }
@@ -66,6 +68,7 @@ export default function Home() {
     fetchProducts();
   }, [sortOption, lowStockOnly]);
 
+  // Mengambil summary produk
   useEffect(() => {
     async function fetchSummary() {
       try {
@@ -88,10 +91,12 @@ export default function Home() {
     fetchSummary();
   }, []);
 
+  // Filter produk berdasarkan nama
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Mengubah angka menjadi format Rupiah
   const formatRupiah = (value: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -108,7 +113,7 @@ export default function Home() {
         <Hero />
 
         {/* Summary */}
-        <section className="grid gap-4 md:grid-cols-2">
+        <section className="grid gap-5 md:grid-cols-2">
           <SummaryCard
             title="Total Products"
             value={
@@ -128,9 +133,20 @@ export default function Home() {
           />
         </section>
 
-        {/* Controls */}
+        {/* Search dan Filter */}
         <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="grid gap-4 md:grid-cols-[1fr_220px_auto]">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Product Filter
+            </h2>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Cari, urutkan, atau tampilkan produk dengan stok rendah.
+            </p>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-[1fr_190px_auto]">
+            {/* Search */}
             <input
               type="text"
               placeholder="Search products..."
@@ -138,9 +154,10 @@ export default function Home() {
               onChange={(event) =>
                 setSearch(event.target.value)
               }
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500"
+              className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
 
+            {/* Sorting */}
             <select
               value={sortOption}
               onChange={(event) =>
@@ -148,74 +165,87 @@ export default function Home() {
                   event.target.value as SortOption
                 )
               }
-              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 outline-none focus:border-blue-500"
+              className="h-11 rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
-              <option value="default">
-                Default
-              </option>
+              <option value="default">Default</option>
+
               <option value="price-asc">
                 Harga Terendah
               </option>
+
               <option value="price-desc">
                 Harga Tertinggi
               </option>
+
               <option value="stock-desc">
                 Stok Terbanyak
               </option>
+
               <option value="stock-asc">
                 Stok Tersedikit
               </option>
             </select>
 
+            {/* Low Stock */}
             <button
               onClick={() =>
                 setLowStockOnly(!lowStockOnly)
               }
-              className={`rounded-xl px-5 py-3 font-semibold transition ${
+              className={`h-11 rounded-lg px-5 text-sm font-semibold transition ${
                 lowStockOnly
-                  ? "bg-red-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-red-600 text-white hover:bg-red-700"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
               }`}
             >
               {lowStockOnly
-                ? "Menampilkan Low Stock"
+                ? "Low Stock Aktif"
                 : "Show Low Stock"}
             </button>
           </div>
         </section>
 
-        {/* Products */}
+        {/* Daftar Produk */}
         <section className="py-8">
-          <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Products
-            </h2>
+          <div className="mb-5 flex items-end justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Products
+              </h2>
+
+              <p className="mt-1 text-sm text-gray-500">
+                Daftar produk yang tersedia
+              </p>
+            </div>
 
             <p className="text-sm text-gray-500">
               {filteredProducts.length} product
             </p>
           </div>
 
+          {/* Loading */}
           {loading && (
-            <div className="rounded-2xl bg-white p-10 text-center">
+            <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center text-gray-500">
               Loading products...
             </div>
           )}
 
+          {/* Error */}
           {!loading && error && (
             <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
               {error}
             </div>
           )}
 
+          {/* Produk tidak ditemukan */}
           {!loading &&
             !error &&
             filteredProducts.length === 0 && (
-              <div className="rounded-2xl bg-white p-10 text-center text-gray-500">
+              <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center text-gray-500">
                 Produk tidak ditemukan.
               </div>
             )}
 
+          {/* Daftar Produk */}
           {!loading &&
             !error &&
             filteredProducts.length > 0 && (
